@@ -4,7 +4,7 @@ namespace TenmoClient
 {
     public static class UserService
     {
-        private static ApiUser user = new ApiUser();
+        public static ApiUser user = new ApiUser();
 
         public static void SetLogin(ApiUser u)
         {

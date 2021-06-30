@@ -8,7 +8,8 @@ namespace TenmoClient
     {
         private static readonly ConsoleService consoleService = new ConsoleService();
         private static readonly AuthService authService = new AuthService();
-
+        private static readonly ApiService api = new ApiService();
+        
         static void Main(string[] args)
         {
             Run();
@@ -71,7 +72,7 @@ namespace TenmoClient
             {
                 Console.WriteLine("");
                 Console.WriteLine("Welcome to TEnmo! Please make a selection: ");
-                Console.WriteLine("1: View your current balance");
+                Console.WriteLine("1: View your account balances");
                 Console.WriteLine("2: View your past transfers");
                 Console.WriteLine("3: View your pending requests");
                 Console.WriteLine("4: Send TE bucks");
@@ -87,7 +88,19 @@ namespace TenmoClient
                 }
                 else if (menuSelection == 1)
                 {
+                    try
+                    {
+                        List<decimal> balances = api.GetBalances(UserService.GetUserId());
+                        foreach (decimal balance in balances)
+                        {
+                            Console.WriteLine(balance);
+                        }
+                    }
+                    catch (Exception e)
+                    {
 
+                        Console.WriteLine(e.Message); 
+                    }
                 }
                 else if (menuSelection == 2)
                 {
