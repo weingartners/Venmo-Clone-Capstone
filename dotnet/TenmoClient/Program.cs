@@ -112,11 +112,49 @@ namespace TenmoClient
                 }
                 else if (menuSelection == 4)
                 {
+                    Console.WriteLine("Who would you like to send TE bucks to?");
+                    List<int> userIds = new List<int>();
+                    List<ApiUser> users = api.GetUsers();
+                    for (int i = 0; i < users.Count; i++)
+                    {
+                        if (users[i].UserId != UserService.GetUserId())
+                        {
+                            Console.WriteLine($"{users[i].UserId}. {users[i].Username}");
+                        }
+                        userIds.Add(users[i].UserId);
+                    }
+                    Console.Write("Please select a number: ");
+                    int userSelection = int.Parse(Console.ReadLine());
+                    
+                    while (!userIds.Contains(userSelection))
+                    {
+                        Console.Write("Error: Please select a valid User ID: ");
+                        userSelection = int.Parse(Console.ReadLine());
+                    }
+                    Console.Write("Please enter a valid TE bucks amount: ");
+                    decimal amountToSend = decimal.Parse(Console.ReadLine());
+                    while (amountToSend <= 0 || amountToSend > api.GetBalances(UserService.GetUserId())[0])
+                    {
+                        if (amountToSend <= 0)
+                        {
+                            Console.Write("Error: Please enter a non-negative amount: ");
+                            amountToSend = decimal.Parse(Console.ReadLine());
+                        }
+                        else
+                        {
+                            Console.Write($"Error: Insufficient funds ({api.GetBalances(UserService.GetUserId())[0].ToString("C2")}), please enter a valid amount: ");
+                            amountToSend = decimal.Parse(Console.ReadLine());
+                        }
+                    }
+
+                    api.TransferMoney(UserService.GetUserId(), amountToSend, userSelection, "Send", "Approved");
+                    Console.WriteLine($"Your balance is: {api.GetBalances(UserService.GetUserId())[0].ToString("C2")}");
 
                 }
                 else if (menuSelection == 5)
                 {
-
+                    
+                    
                 }
                 else if (menuSelection == 6)
                 {

@@ -20,14 +20,6 @@ namespace TenmoServer.Controllers
             accountDao = _accountDao;
         }
 
-        //[HttpGet("account/{id}")]
-        //public ActionResult<List<Account>> GetAccounts(int id)
-        //{
-        //    var accounts = accountDao.GetAccounts(id);
-
-        //    return Ok(accounts);
-        //}
-
         [HttpGet("account/{id}/balance")]
         public ActionResult<List<decimal>> GetBalances(int id)
         {
@@ -36,6 +28,44 @@ namespace TenmoServer.Controllers
             if (balance != null)
             {
                 return Ok(balance);
+            }
+            return NotFound();
+        }
+
+        [HttpPut("transfer/{transfer}")]
+        public ActionResult<Transfer> TransferMoney(Transfer transfer)
+        {
+            userDao.SendMoney(transfer.SendingUserId, transfer.TransferAmount);
+            userDao.RecieveMoney(transfer.RecievingUserId, transfer.TransferAmount);
+
+            if (transfer != null)
+            {
+                return Ok(transfer);
+            }
+            return NotFound();
+            
+        }
+
+        [AllowAnonymous]
+        [HttpGet("users")]
+        public ActionResult<List<User>> GetUsers()
+        {
+            var users = userDao.GetUsers();
+            if (users != null)
+            {
+                return Ok(users);
+            }
+            return NotFound();
+        }
+
+        [AllowAnonymous]
+        [HttpGet("usernames")]
+        public ActionResult<List<string>> GetUsernames()
+        {
+            var usernames = userDao.GetUsernames();
+            if (usernames != null)
+            {
+                return Ok(usernames);
             }
             return NotFound();
         }

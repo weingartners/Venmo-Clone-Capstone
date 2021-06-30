@@ -30,7 +30,7 @@ namespace TenmoServer.DAO
                     SqlCommand cmd = new SqlCommand("SELECT user_id, username, password_hash, salt FROM users WHERE username = @username", conn);
                     cmd.Parameters.AddWithValue("@username", username);
                     SqlDataReader reader = cmd.ExecuteReader();
-
+                    
                     if (reader.Read())
                     {
                         returnUser = GetUserFromReader(reader);
@@ -73,6 +73,33 @@ namespace TenmoServer.DAO
             return returnUsers;
         }
 
+        public List<string> GetUsernames()
+        {
+            List<string> returnUsernames = new List<string>();
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    SqlCommand cmd = new SqlCommand("SELECT user_id, username, password_hash, salt FROM users", conn);
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        returnUsernames.Add(GetUserFromReader(reader).Username);
+                    }
+                }
+            }
+            catch (SqlException)
+            {
+                throw;
+            }
+
+            return returnUsernames;
+        }
+
         public User AddUser(string username, string password)
         {
             IPasswordHasher passwordHasher = new PasswordHasher();
@@ -105,6 +132,50 @@ namespace TenmoServer.DAO
             }
 
             return GetUser(username);
+        }
+
+        public bool SendMoney(int userId, decimal dollarAmount)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    SqlCommand cmd = new SqlCommand("UPDATE accounts SET balance = balance - @dollarAmount WHERE user_id = @user_id;", conn);
+                    cmd.Parameters.AddWithValue("@dollarAmount", dollarAmount);
+                    cmd.Parameters.AddWithValue("@user_id", userId);
+                    cmd.ExecuteNonQuery();
+
+                    return true;
+                }
+            }
+            catch (SqlException)
+            {
+                throw;
+            }
+        }
+
+        public bool RecieveMoney(int userId, decimal dollarAmount)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    SqlCommand cmd = new SqlCommand("UPDATE accounts SET balance = balance + @dollarAmount WHERE user_id = @user_id;", conn);
+                    cmd.Parameters.AddWithValue("@dollarAmount", dollarAmount);
+                    cmd.Parameters.AddWithValue("@user_id", userId);
+                    cmd.ExecuteNonQuery();
+
+                    return true;
+                }
+            }
+            catch (SqlException)
+            {
+                throw;
+            }
         }
 
         private User GetUserFromReader(SqlDataReader reader)
