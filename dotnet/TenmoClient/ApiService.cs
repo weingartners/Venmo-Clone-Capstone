@@ -60,27 +60,54 @@ namespace TenmoClient
             }
             return null;
         }
+        public List<Transfer> GetTransfersById(int id)
+        {
+            RestRequest request = new RestRequest($"{API_BASE_URL}transfer/{id}");
+            client.Authenticator = new JwtAuthenticator(UserService.GetToken());
+            IRestResponse<List<Transfer>> response = client.Get<List<Transfer>>(request);
 
-        public bool TransferMoney(int sendingId, decimal dollarAmount, int recievingId, string type, string status)
+            if (response.ResponseStatus != ResponseStatus.Completed || !response.IsSuccessful)
+            {
+                ProcessErrorResponse(response);
+            }
+            else
+            {
+                return response.Data;
+            }
+            return null;
+        }
+        public bool TransferMoney(int sendingId, decimal dollarAmount, int receivingId, int typeId, int statusId )
         {
             if (GetBalances(sendingId)[0] >= dollarAmount && dollarAmount > 0)
             {
-                Transfer transfer = new Transfer(sendingId, dollarAmount, recievingId, type, status);
+                Transfer transfer = new Transfer(sendingId, dollarAmount, receivingId, typeId, statusId);
                 client.Authenticator = new JwtAuthenticator(UserService.GetToken());
-                RestRequest request = new RestRequest(API_BASE_URL + "transfer/" + transfer);
-                request.AddJsonBody(transfer);
-                IRestResponse<Transfer> response = client.Put<Transfer>(request);
+                RestRequest putRequest = new RestRequest(API_BASE_URL + "transfer/" + transfer);
+                putRequest.AddJsonBody(transfer);
+                IRestResponse<Transfer> putResponse = client.Put<Transfer>(putRequest);
+
+                RestRequest postRequest = new RestRequest(API_BASE_URL + "savetransfer");
+                client.Authenticator = new JwtAuthenticator(UserService.GetToken());
+                postRequest.AddJsonBody(transfer);
+                IRestResponse<Transfer> postResponse = client.Post<Transfer>(postRequest);
 
 
-                if (response.ResponseStatus != ResponseStatus.Completed || !response.IsSuccessful)
+
+                if (putResponse.ResponseStatus != ResponseStatus.Completed || !putResponse.IsSuccessful)
                 {
-                    ProcessErrorResponse(response);
+                    ProcessErrorResponse(putResponse);
                 }
+                else if (postResponse.ResponseStatus != ResponseStatus.Completed || !postResponse.IsSuccessful)
+                {
+                    ProcessErrorResponse(postResponse);
+                }
+                
                 else
                 {
                     Console.WriteLine("Transfer initiated...");
                     return true;
                 }
+
                 return false;
             }
             else

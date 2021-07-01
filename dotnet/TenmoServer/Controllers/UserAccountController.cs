@@ -13,11 +13,12 @@ namespace TenmoServer.Controllers
     {
         private readonly IUserDao userDao;
         private readonly IAccountDao accountDao;
-
-        public UserAccountController(IUserDao _userDao, IAccountDao _accountDao)
+        private readonly ITransferDao transferDao;
+        public UserAccountController(IUserDao _userDao, IAccountDao _accountDao, ITransferDao _transferDao)
         {
             userDao = _userDao;
             accountDao = _accountDao;
+            transferDao = _transferDao;
         }
 
         [HttpGet("account/{id}/balance")]
@@ -36,7 +37,7 @@ namespace TenmoServer.Controllers
         public ActionResult<Transfer> TransferMoney(Transfer transfer)
         {
             userDao.SendMoney(transfer.SendingUserId, transfer.TransferAmount);
-            userDao.RecieveMoney(transfer.RecievingUserId, transfer.TransferAmount);
+            userDao.RecieveMoney(transfer.ReceivingUserId, transfer.TransferAmount);
 
             if (transfer != null)
             {
@@ -44,6 +45,27 @@ namespace TenmoServer.Controllers
             }
             return NotFound();
             
+        }
+        [HttpPost("savetransfer")]
+        public ActionResult<Transfer> SaveTransfer(Transfer transfer)
+        {
+            transferDao.SaveTransfer(transfer.SendingUserId, transfer.TransferAmount, transfer.ReceivingUserId, transfer.TypeId, transfer.StatusId);
+            if (transfer != null)
+            {
+                return Ok(transfer);
+            }
+            return NotFound();
+        }
+        [HttpGet ("transfer/{id}")]
+        public ActionResult<List<Transfer>> GetTransfersById(int id)
+        {
+            var transfers = transferDao.GetTransfersById(id);
+
+            if (transfers != null)
+            {
+                return Ok(transfers);
+            }
+            return NotFound();
         }
 
         [AllowAnonymous]

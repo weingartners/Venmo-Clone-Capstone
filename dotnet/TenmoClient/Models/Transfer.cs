@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace TenmoClient.Models
+﻿namespace TenmoClient.Models
 {
     class Transfer
     {
@@ -10,21 +6,24 @@ namespace TenmoClient.Models
         {
 
         }
-        public Transfer(int sendingUserId, decimal transferAmount, int recievingUserId, int typeId, int statusId)
+        public Transfer(int sendingUserId, decimal transferAmount, int receivingUserId, int typeId, int statusId)
         {
             SendingUserId = sendingUserId;
             TransferAmount = transferAmount;
-            RecievingUserId = recievingUserId;
+            ReceivingUserId = receivingUserId;
             TypeId = typeId;
             StatusId = statusId;
-
+            
         }
 
+        public int TransferId { get; set; }
         public int SendingUserId { get; set; }
         public decimal TransferAmount { get; set; }
-        public int RecievingUserId { get; set; }
+        public int ReceivingUserId { get; set; }
         
         public int TypeId { get; set; }
         public int StatusId { get; set; }
+        public string FromUserName { get; set; }
+        public string ToUserName { get; set; }
     }
 }

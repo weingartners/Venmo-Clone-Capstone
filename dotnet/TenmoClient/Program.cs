@@ -104,7 +104,71 @@ namespace TenmoClient
                 }
                 else if (menuSelection == 2)
                 {
-
+                    List<Transfer> transfers = api.GetTransfersById(UserService.GetUserId());
+                    List<int> transferIds = new List<int>();
+                    Console.WriteLine("----------------------------------");
+                    Console.WriteLine("Transfers");
+                    Console.WriteLine("ID         From/To          Amount");
+                    Console.WriteLine("----------------------------------");
+                    foreach (Transfer transfer in transfers)
+                    {
+                        if (transfer.ReceivingUserId == UserService.GetUserId() )
+                        {
+                            Console.WriteLine($"{transfer.TransferId}      From: {transfer.FromUserName}  Amount: {transfer.TransferAmount.ToString("C2")}");
+                        }
+                        else
+                        {
+                            Console.WriteLine($"{transfer.TransferId}      To: {transfer.ToUserName}   Amount: {transfer.TransferAmount.ToString("C2")}");
+                        }
+                        transferIds.Add(transfer.TransferId);
+                    }
+                    Console.WriteLine("----------------------------------");
+                    Console.Write("Please enter transfer ID to view details (0 to cancel): ");
+                    int selection = int.Parse(Console.ReadLine());
+                    if (selection == 0)
+                    {
+                        menuSelection = -1;
+                    }
+                    while (!transferIds.Contains(selection))
+                    {
+                        Console.Write("Error: Please select a valid Transfer ID: ");
+                        selection = int.Parse(Console.ReadLine());
+                    }
+                    Console.WriteLine("----------------------------------");
+                    Console.WriteLine("Transfer Details");
+                    Console.WriteLine("----------------------------------");
+                    
+                    foreach (Transfer transfer in transfers)
+                    {
+                        if (transfer.TransferId == selection)
+                        {
+                            Console.WriteLine($"Id: {selection}");
+                            Console.WriteLine($"From: {transfer.FromUserName}");
+                            Console.WriteLine($"To: {transfer.ToUserName}");
+                            if (transfer.TypeId == 1)
+                            {
+                                Console.WriteLine("Type: Request");
+                            }
+                            else
+                            {
+                                Console.WriteLine("Type: Send");
+                            }
+                            if (transfer.StatusId == 1)
+                            {
+                                Console.WriteLine("Status: Pending");
+                            }
+                            else if (transfer.StatusId == 2)
+                            {
+                                Console.WriteLine("Status: Approved");
+                            }
+                            else
+                            {
+                                Console.WriteLine("Status: Rejected");
+                            }
+                            Console.WriteLine($"Amount: {transfer.TransferAmount.ToString("C2")}");
+                        }   
+                    }
+                    
                 }
                 else if (menuSelection == 3)
                 {
@@ -147,7 +211,7 @@ namespace TenmoClient
                         }
                     }
 
-                    api.TransferMoney(UserService.GetUserId(), amountToSend, userSelection, "Send", "Approved");
+                    api.TransferMoney(UserService.GetUserId(), amountToSend, userSelection, 2, 2);
                     Console.WriteLine($"Your balance is: {api.GetBalances(UserService.GetUserId())[0].ToString("C2")}");
 
                 }
