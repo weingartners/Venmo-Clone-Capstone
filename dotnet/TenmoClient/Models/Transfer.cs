@@ -10,19 +10,21 @@ namespace TenmoClient.Models
         {
 
         }
-        public Transfer(int sendingUserId, decimal transferAmount, int recievingUserId, string type, string status)
+        public Transfer(int sendingUserId, decimal transferAmount, int recievingUserId, int typeId, int statusId)
         {
             SendingUserId = sendingUserId;
             TransferAmount = transferAmount;
             RecievingUserId = recievingUserId;
-            Type = type;
-            Status = status;
+            TypeId = typeId;
+            StatusId = statusId;
+
         }
 
         public int SendingUserId { get; set; }
         public decimal TransferAmount { get; set; }
         public int RecievingUserId { get; set; }
-        public string Type { get; set; }
-        public string Status { get; set; } = "Approved";
+        
+        public int TypeId { get; set; }
+        public int StatusId { get; set; }
     }
 }
