@@ -109,6 +109,60 @@ namespace TenmoServer.DAO
             }
             return transfers;
         }
+
+        public List<Transfer> GetRequests(int id)
+        {
+                List<Transfer> transfers = new List<Transfer>();
+
+                try
+                {
+                    using (SqlConnection conn = new SqlConnection(connectionString))
+                    {
+                        conn.Open();
+
+                        SqlCommand cmd = new SqlCommand("SELECT t.transfer_id, t.transfer_type_id, t.transfer_status_id, t.amount, a.user_id AS sending_id, u.username AS sending_username, aa.user_id AS receiving_id, uu.username AS receiving_username " +
+                                                    "FROM transfers t " +
+                                                    "JOIN accounts a ON a.account_id = t.account_from " +
+                                                    "JOIN users u ON u.user_id = a.user_id " +
+                                                    "JOIN accounts aa ON aa.account_id = t.account_to " +
+                                                    "JOIN users uu ON uu.user_id = aa.user_id " +
+                                                    "WHERE u.user_id = @user_id AND t.transfer_status_id = 1; ", conn);
+                    cmd.Parameters.AddWithValue("@user_id", id);
+                    SqlDataReader reader = cmd.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        transfers.Add(GetTransferFromReader(reader));
+                    }
+                }
+                }
+                catch (SqlException)
+                {
+                    throw;
+                }
+            return transfers;
+            }
+
+        public void UpdateStatus(int transferId, int statusId)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    SqlCommand cmd = new SqlCommand("UPDATE transfers SET transfer_status_id = @transfer_status_id WHERE transfer_id = @transfer_id;", conn);
+                    cmd.Parameters.AddWithValue("@transfer_id", transferId);
+                    cmd.Parameters.AddWithValue("@transfer_status_id", statusId);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            catch (SqlException)
+            {
+                throw;
+            }
+        }
+
         public Transfer GetTransferFromReader(SqlDataReader reader)
         {
             Transfer t = new Transfer()

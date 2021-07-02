@@ -93,7 +93,8 @@ namespace TenmoClient
                         List<decimal> balances = api.GetBalances(UserService.GetUserId());
                         foreach (decimal balance in balances)
                         {
-                            Console.WriteLine(balance);
+                            Console.Write("\nYour current balance is: ");
+                            Console.WriteLine(balance.ToString("C2"));
                         }
                     }
                     catch (Exception e)
@@ -104,6 +105,7 @@ namespace TenmoClient
                 }
                 else if (menuSelection == 2)
                 {
+                    int selection = -1;
                     List<Transfer> transfers = api.GetTransfersById(UserService.GetUserId());
                     List<int> transferIds = new List<int>();
                     Console.WriteLine("----------------------------------");
@@ -124,16 +126,17 @@ namespace TenmoClient
                     }
                     Console.WriteLine("----------------------------------");
                     Console.Write("Please enter transfer ID to view details (0 to cancel): ");
-                    int selection = int.Parse(Console.ReadLine());
+                    bool parseSelection = int.TryParse(Console.ReadLine(), out selection);
+                    while((!transferIds.Contains(selection) || parseSelection == false) && selection != 0)
+                    {
+                        Console.Write("Please enter a valid Transfer ID: ");
+                        parseSelection = int.TryParse(Console.ReadLine(), out selection);
+                    }
                     if (selection == 0)
                     {
-                        menuSelection = -1;
+                        MenuSelection();
                     }
-                    while (!transferIds.Contains(selection))
-                    {
-                        Console.Write("Error: Please select a valid Transfer ID: ");
-                        selection = int.Parse(Console.ReadLine());
-                    }
+                    
                     Console.WriteLine("----------------------------------");
                     Console.WriteLine("Transfer Details");
                     Console.WriteLine("----------------------------------");
@@ -172,11 +175,121 @@ namespace TenmoClient
                 }
                 else if (menuSelection == 3)
                 {
+                    int idSelection = -1;
+                    Transfer transferRequest = new Transfer();
+
+                    List<Transfer> requests = api.GetRequests(UserService.GetUserId());
+                    List<int> transferIds = new List<int>();
+                    Console.WriteLine("----------------------------------");
+                    Console.WriteLine("Requests");
+                    Console.WriteLine("ID         To          Amount");
+                    Console.WriteLine("----------------------------------");
+                    foreach (Transfer request in requests)
+                    {
+                        Console.WriteLine($"{request.TransferId}      To: {request.ToUserName}   Amount: {request.TransferAmount.ToString("C2")}");
+                        transferIds.Add(request.TransferId);
+                    }
+                    Console.WriteLine("----------------------------------");
+                    Console.WriteLine("Please enter transfer ID to approve/reject (0 to cancel): ");
+                    bool parseIdSelection  = int.TryParse(Console.ReadLine(), out idSelection);
+
+                    while ((!transferIds.Contains(idSelection) || parseIdSelection == false) && idSelection != 0)
+                    {
+                        Console.Write("Error: Please select a valid Transfer ID: ");
+                        parseIdSelection = int.TryParse(Console.ReadLine(), out idSelection);
+                    }
+                    if (idSelection == 0)
+                    {
+                        MenuSelection();
+                    }
+                    foreach (Transfer request in requests)
+                    {
+                        if (idSelection == request.TransferId)
+                        {
+                            transferRequest = request;
+                        }
+                    }
+                    Console.WriteLine("1: Approve\n2: Reject\n0: Don't approve or reject\n---------\nPlease choose an option:");
+                    bool parseResponseSelection = int.TryParse(Console.ReadLine(), out int responseSelection);
+
+                    while (parseResponseSelection == false)
+                    {
+                        Console.WriteLine("Please enter a valid option: ");
+                        parseResponseSelection = int.TryParse(Console.ReadLine(), out responseSelection);
+                    }
+                    if (responseSelection == 1)
+                    {
+                        api.CompleteRequest(transferRequest.SendingUserId, transferRequest.TransferAmount, transferRequest.ReceivingUserId, transferRequest.TypeId, transferRequest.StatusId);
+                        api.UpdateStatus(transferRequest.TransferId, transferRequest.SendingUserId, transferRequest.TransferAmount, transferRequest.ReceivingUserId, transferRequest.TypeId, 2);
+                    }
+                    if (responseSelection == 2)
+                    {
+                        api.UpdateStatus(transferRequest.TransferId, transferRequest.SendingUserId, transferRequest.TransferAmount, transferRequest.ReceivingUserId, transferRequest.TypeId, 3);
+                    }
+                    if (responseSelection == 0)
+                    {
+                        MenuSelection();
+                    }
+
 
                 }
                 else if (menuSelection == 4)
                 {
+                    int userSelection = -1;
                     Console.WriteLine("Who would you like to send TE bucks to?");
+                    List<int> userIds = new List<int>();
+                    List<ApiUser> users = api.GetUsers();
+                    Console.WriteLine("\n-------------------------------------------");
+                    Console.WriteLine("Users\nID        Name");
+                    Console.WriteLine("-------------------------------------------");
+                    for (int i = 0; i < users.Count; i++)
+                    {
+                        if (users[i].UserId != UserService.GetUserId())
+                        {
+                            Console.WriteLine($"{users[i].UserId}. {users[i].Username}");
+                        }
+                        userIds.Add(users[i].UserId);
+                    }
+                    Console.WriteLine("---------\n");
+                    Console.Write("Enter ID of user you are sending to (0 to cancel): ");
+                    bool canParse = int.TryParse(Console.ReadLine(), out userSelection);
+
+                    while ((!userIds.Contains(userSelection) || canParse == false) && userSelection != 0)
+                    {
+                        Console.Write("Error: Please select a valid User ID: ");
+                        canParse = int.TryParse(Console.ReadLine(), out userSelection);
+                    }
+                    if (userSelection == 0)
+                    {
+                        MenuSelection();
+                    }
+
+                    Console.Write("Please enter a valid TE bucks amount: ");
+                    bool parseAmountToSend = decimal.TryParse(Console.ReadLine(), out decimal amountToSend);
+
+                    while (amountToSend <= 0 || amountToSend > api.GetBalances(UserService.GetUserId())[0] || parseAmountToSend == false)
+                    {
+                        if (amountToSend <= 0)
+                        {
+                            Console.Write("Error: Please enter a valid amount: ");
+                            parseAmountToSend = decimal.TryParse(Console.ReadLine(), out amountToSend);
+                        }
+                        else 
+                        {
+                            Console.Write($"Error: Insufficient funds ({api.GetBalances(UserService.GetUserId())[0].ToString("C2")}), please enter a valid amount: ");
+                            parseAmountToSend = decimal.TryParse(Console.ReadLine(), out amountToSend);
+                        }
+                        
+                    }
+
+                    api.TransferMoney(UserService.GetUserId(), amountToSend, userSelection, 2, 2);
+                    Console.WriteLine($"Your balance is: {api.GetBalances(UserService.GetUserId())[0].ToString("C2")}");
+
+                }
+                else if (menuSelection == 5)
+                {
+                    int userSelection = -1;
+                    Console.WriteLine("Who would you like to request TE bucks from?");
                     List<int> userIds = new List<int>();
                     List<ApiUser> users = api.GetUsers();
                     for (int i = 0; i < users.Count; i++)
@@ -187,38 +300,28 @@ namespace TenmoClient
                         }
                         userIds.Add(users[i].UserId);
                     }
-                    Console.Write("Please select a number: ");
-                    int userSelection = int.Parse(Console.ReadLine());
-                    
-                    while (!userIds.Contains(userSelection))
+                    Console.Write("Enter ID of user you are requesting from (0 to cancel): ");
+                    bool canParse = int.TryParse(Console.ReadLine(), out userSelection);
+
+                    while ((!userIds.Contains(userSelection) || canParse == false) && userSelection != 0)
                     {
                         Console.Write("Error: Please select a valid User ID: ");
-                        userSelection = int.Parse(Console.ReadLine());
+                        canParse = int.TryParse(Console.ReadLine(), out userSelection);
+                    }
+                    if(userSelection == 0)
+                    {
+                        MenuSelection();
                     }
                     Console.Write("Please enter a valid TE bucks amount: ");
-                    decimal amountToSend = decimal.Parse(Console.ReadLine());
-                    while (amountToSend <= 0 || amountToSend > api.GetBalances(UserService.GetUserId())[0])
+                    bool parseAmountToSend = decimal.TryParse(Console.ReadLine(), out decimal amountToSend);
+
+                    while (amountToSend <= 0 || parseAmountToSend == false)
                     {
-                        if (amountToSend <= 0)
-                        {
-                            Console.Write("Error: Please enter a non-negative amount: ");
-                            amountToSend = decimal.Parse(Console.ReadLine());
-                        }
-                        else
-                        {
-                            Console.Write($"Error: Insufficient funds ({api.GetBalances(UserService.GetUserId())[0].ToString("C2")}), please enter a valid amount: ");
-                            amountToSend = decimal.Parse(Console.ReadLine());
-                        }
+                        Console.Write("Error: Please enter a valid TE bucks amount: ");
+                        parseAmountToSend = decimal.TryParse(Console.ReadLine(), out amountToSend);
                     }
+                    api.SaveTransfer(userSelection, amountToSend, UserService.GetUserId(), 1, 1);
 
-                    api.TransferMoney(UserService.GetUserId(), amountToSend, userSelection, 2, 2);
-                    Console.WriteLine($"Your balance is: {api.GetBalances(UserService.GetUserId())[0].ToString("C2")}");
-
-                }
-                else if (menuSelection == 5)
-                {
-                    
-                    
                 }
                 else if (menuSelection == 6)
                 {

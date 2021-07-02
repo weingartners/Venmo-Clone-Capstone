@@ -68,6 +68,26 @@ namespace TenmoServer.Controllers
             return NotFound();
         }
 
+        [HttpGet ("requests/{id}")]
+        public ActionResult<List<Transfer>> GetRequests(int id)
+        {
+            var transfers = transferDao.GetRequests(id);
+
+            if (transfers != null)
+            {
+                return Ok(transfers);
+            }
+            return NotFound();
+        }
+
+        [HttpPut ("updatestatus/{transferId}")]
+        public ActionResult<Transfer> UpdateStatus(Transfer transfer)
+        {
+            transferDao.UpdateStatus(transfer.TransferId, transfer.StatusId);
+
+            return Ok();
+        }
+
         [AllowAnonymous]
         [HttpGet("users")]
         public ActionResult<List<User>> GetUsers()
