@@ -126,12 +126,13 @@ namespace TenmoClient
                     }
                     Console.WriteLine("----------------------------------");
                     Console.Write("Please enter transfer ID to view details (0 to cancel): ");
-                    bool parseSelection = int.TryParse(Console.ReadLine(), out selection);
-                    while((!transferIds.Contains(selection) || parseSelection == false) && selection != 0)
+                    bool parseSelection = consoleService.TryParseInt32(Console.ReadLine(), ref selection);
+                    while ((!transferIds.Contains(selection) || parseSelection == false) && selection != 0)
                     {
                         Console.Write("Please enter a valid Transfer ID: ");
-                        parseSelection = int.TryParse(Console.ReadLine(), out selection);
+                        parseSelection = consoleService.TryParseInt32(Console.ReadLine(), ref selection);
                     }
+                    
                     if (selection == 0)
                     {
                         MenuSelection();
@@ -191,12 +192,12 @@ namespace TenmoClient
                     }
                     Console.WriteLine("----------------------------------");
                     Console.WriteLine("Please enter transfer ID to approve/reject (0 to cancel): ");
-                    bool parseIdSelection  = int.TryParse(Console.ReadLine(), out idSelection);
+                    bool parseIdSelection  = consoleService.TryParseInt32(Console.ReadLine(), ref idSelection);
 
                     while ((!transferIds.Contains(idSelection) || parseIdSelection == false) && idSelection != 0)
                     {
                         Console.Write("Error: Please select a valid Transfer ID: ");
-                        parseIdSelection = int.TryParse(Console.ReadLine(), out idSelection);
+                        parseIdSelection = consoleService.TryParseInt32(Console.ReadLine(), ref idSelection);
                     }
                     if (idSelection == 0)
                     {
@@ -252,12 +253,12 @@ namespace TenmoClient
                     }
                     Console.WriteLine("---------\n");
                     Console.Write("Enter ID of user you are sending to (0 to cancel): ");
-                    bool canParse = int.TryParse(Console.ReadLine(), out userSelection);
+                    bool canParse = consoleService.TryParseInt32(Console.ReadLine(), ref userSelection);
 
                     while ((!userIds.Contains(userSelection) || canParse == false) && userSelection != 0)
                     {
                         Console.Write("Error: Please select a valid User ID: ");
-                        canParse = int.TryParse(Console.ReadLine(), out userSelection);
+                        canParse = consoleService.TryParseInt32(Console.ReadLine(), ref userSelection);
                     }
                     if (userSelection == 0)
                     {
@@ -301,12 +302,12 @@ namespace TenmoClient
                         userIds.Add(users[i].UserId);
                     }
                     Console.Write("Enter ID of user you are requesting from (0 to cancel): ");
-                    bool canParse = int.TryParse(Console.ReadLine(), out userSelection);
+                    bool canParse = consoleService.TryParseInt32(Console.ReadLine(), ref userSelection);
 
                     while ((!userIds.Contains(userSelection) || canParse == false) && userSelection != 0)
                     {
                         Console.Write("Error: Please select a valid User ID: ");
-                        canParse = int.TryParse(Console.ReadLine(), out userSelection);
+                        canParse = consoleService.TryParseInt32(Console.ReadLine(), ref userSelection);
                     }
                     if(userSelection == 0)
                     {

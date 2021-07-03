@@ -70,5 +70,19 @@ namespace TenmoClient
             Console.WriteLine("");
             return pass;
         }
+
+        public bool TryParseInt32(string text, ref int value)
+        {
+            int tmp;
+            if (int.TryParse(text, out tmp))
+            {
+                value = tmp;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 }
